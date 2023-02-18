@@ -15,6 +15,7 @@
               : "none"
           }}
         </p>
+        <p>Mastery: {{ selectedNode.mastery }}</p>
       </div>
     </div>
     <div ref="graph"></div>
@@ -27,24 +28,35 @@ import * as d3 from "d3";
 
 const data = {
   nodes: [
-    { id: "Calculus" },
+    { id: "Calculus", mastery: 0.7 },
     {
       id: "Classical Mechanics",
+      mastery: 0.5,
       prerequisites: ["Calculus"],
-      advanced: ["Electromagnetism"],
     },
     {
       id: "Electromagnetism",
+      mastery: 0.6,
       prerequisites: ["Calculus", "Classical Mechanics"],
     },
-    { id: "Quantum Mechanics", prerequisites: ["Calculus"] },
-    { id: "Thermodynamics", prerequisites: ["Calculus"] },
+    { id: "Quantum Mechanics", mastery: 0, prerequisites: ["Calculus"] },
+    { id: "Thermodynamics", mastery: 0, prerequisites: ["Calculus"] },
   ],
   links: [
     { source: "Classical Mechanics", target: "Electromagnetism" },
     { source: "Classical Mechanics", target: "Thermodynamics" },
   ],
 };
+
+const masteryColors = ["#D3D3D3", "#ff6863", "#ff964f", "#ffb347", "#fdfd95", "#90EE90", "#005C29", "#013220"];
+function getColorFromMastery(mastery) {
+  console.log("mastery: ", mastery);
+  const index = Math.floor(mastery * masteryColors.length);
+  console.log("index: ", index);
+  const color = masteryColors[index];
+  console.log("color: ", color);
+  return color;
+}
 
 export default {
   mounted() {
@@ -95,7 +107,7 @@ export default {
         .enter()
         .append("circle")
         .attr("r", 10)
-        .attr("fill", "steelblue")
+        .attr("fill", (d) => getColorFromMastery(d.mastery))
         .call(drag(simulation));
 
       const label = svg
@@ -162,7 +174,6 @@ function drag(simulation) {
     .on("drag", dragged)
     .on("end", dragended);
 }
-
 </script>
 
 <style scoped>
@@ -192,10 +203,10 @@ svg {
 }
 
 span.close {
-    position: fixed;
-    top: 0;
-    right: 0;
-    padding: 10px 20px;
-    font-size: 30px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 10px 20px;
+  font-size: 30px;
 }
 </style>
