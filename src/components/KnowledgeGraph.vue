@@ -3,6 +3,20 @@
     <!-- <div>
     {{ knowledgeStore.test }}
    </div> -->
+    <div v-if="selectedNode" id="modal">
+      <div class="modal-content">
+        <span class="close" @click="selectedNode = null">&times;</span>
+        <h2>{{ selectedNode.id }}</h2>
+        <p>
+          Prerequisites:
+          {{
+            selectedNode.prerequisites
+              ? selectedNode.prerequisites.join(", ")
+              : "none"
+          }}
+        </p>
+      </div>
+    </div>
     <div ref="graph"></div>
     <button @click="addNode">Add Node</button>
   </div>
@@ -35,6 +49,11 @@ const data = {
 export default {
   mounted() {
     this.renderGraph();
+  },
+  data() {
+    return {
+      selectedNode: null,
+    };
   },
   methods: {
     renderGraph() {
@@ -87,7 +106,10 @@ export default {
         .append("text")
         .text((d) => d.id)
         .attr("dx", 12)
-        .attr("dy", 4);
+        .attr("dy", 4)
+        .on("click", (event, node) => {
+          this.displayNodeData(node);
+        });
 
       simulation.on("tick", () => {
         link
@@ -102,9 +124,16 @@ export default {
       });
     },
     addNode() {
-      data.nodes.push({ id: "Test", prerequisites: ["Thermodynamics", "Electromagnetism"] });
+      data.nodes.push({
+        id: "Test",
+        prerequisites: ["Thermodynamics", "Electromagnetism"],
+      });
       d3.select("svg").remove();
       this.renderGraph();
+    },
+    displayNodeData(node) {
+      this.selectedNode = node;
+      console.log(this.selectedNode);
     },
   },
 };
@@ -134,14 +163,39 @@ function drag(simulation) {
     .on("end", dragended);
 }
 
-// import {useKnowledgeStore} from '../pinia/KnowledgeStore'
-
-// const knowledgeStore = useKnowledgeStore()
-// console.log(knowledgeStore.graph.topics)
 </script>
 
 <style scoped>
 svg {
   border: 1px solid black;
+}
+#modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  max-width: 100%;
+  height: 600px;
+  max-height: 100%;
+  background: white;
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+.modal-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+span.close {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding: 10px 20px;
+    font-size: 30px;
 }
 </style>
