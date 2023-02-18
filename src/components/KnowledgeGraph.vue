@@ -18,6 +18,48 @@
         <p>Mastery: {{ selectedNode.mastery }}</p>
       </div>
     </div>
+    <div id="wrapper">
+      <form @submit="onSubmit" class="add-form">
+        <div class="form-control">
+          <label> Topic </label>
+          <input
+            type="text"
+            v-model="text"
+            name="text"
+            placeholder="Add Topic"
+          />
+        </div>
+        <div class="form-control">
+          <label> Prerequisites </label>
+          <input
+            type="text"
+            v-model="prereqs"
+            name="prereqs"
+            placeholder="Add Prerequisites"
+          />
+        </div>
+        <div class="form-control">
+          <label> Link </label>
+          <input
+            type="text"
+            v-model="link"
+            name="link"
+            placeholder="Add Link"
+          />
+        </div>
+        <div class="form-control">
+          <label> Mastery Level </label>
+          <input
+            type="float"
+            v-model="mastery"
+            name="mastery"
+            placeholder="Add Mastery Level"
+          />
+        </div>
+        <button id="btn" @click="addNode">Add Node</button>
+      </form>
+    </div>
+
     <div ref="graph"></div>
     <button @click="addNode">Add Node</button>
   </div>
@@ -28,7 +70,7 @@ import * as d3 from "d3";
 
 const data = {
   nodes: [
-    { id: "Calculus", mastery: 0.7 },
+    { id: "Calculus", mastery: 0.7, prerequisites: [] },
     {
       id: "Classical Mechanics",
       mastery: 0.5,
@@ -42,19 +84,22 @@ const data = {
     { id: "Quantum Mechanics", mastery: 0, prerequisites: ["Calculus"] },
     { id: "Thermodynamics", mastery: 0, prerequisites: ["Calculus"] },
   ],
-  links: [
-    { source: "Classical Mechanics", target: "Electromagnetism" },
-    { source: "Classical Mechanics", target: "Thermodynamics" },
-  ],
+  links: [],
 };
 
-const masteryColors = ["#D3D3D3", "#ff6863", "#ff964f", "#ffb347", "#fdfd95", "#90EE90", "#005C29", "#013220"];
+const masteryColors = [
+  "#D3D3D3",
+  "#ff6863",
+  "#ff964f",
+  "#ffb347",
+  "#fdfd95",
+  "#90EE90",
+  "#005C29",
+  "#013220",
+];
 function getColorFromMastery(mastery) {
-  console.log("mastery: ", mastery);
   const index = Math.floor(mastery * masteryColors.length);
-  console.log("index: ", index);
   const color = masteryColors[index];
-  console.log("color: ", color);
   return color;
 }
 
@@ -65,10 +110,15 @@ export default {
   data() {
     return {
       selectedNode: null,
+      text: "",
+      prereqs: "",
+      link: "",
+      mastery: "",
     };
   },
   methods: {
     renderGraph() {
+      this.loopThruPrereqs();
       const svg = d3
         .select(this.$refs.graph)
         .append("svg")
@@ -87,7 +137,7 @@ export default {
           "link",
           d3.forceLink(data.links).id((d) => d.id)
         )
-        .force("charge", d3.forceManyBody().strength(-50)) // spread apart value
+        .force("charge", d3.forceManyBody().strength(-5000)) // spread apart value
         .force("center", d3.forceCenter(500, 300)); // position center of graph
 
       const link = svg
@@ -143,6 +193,36 @@ export default {
       d3.select("svg").remove();
       this.renderGraph();
     },
+    loopThruPrereqs() {
+      data.links = [];
+      for (let i = 0; i < data.nodes.length; i = i + 1) {
+        for (let j = 0; j < data.nodes[i].prerequisites.length; j = j + 1) {
+          data.links.push({
+            source: data.nodes[i].id,
+            target: data.nodes[i].prerequisites[j],
+          });
+        }
+      }
+    },
+    onsubmit(e) {
+      e.preventDefault();
+
+      if (!this.text || !this.prereqs || !this.link || !this.mastery) {
+        alert("Please fill out all sections ");
+        return;
+      }
+
+      const newNode = {
+        text: this.text,
+        prereqs: this.prereqs,
+        link: this.link,
+        mastery: this.mastery,
+      };
+      console.log(newNode);
+      (this.text = ""), (this.prereqs = "");
+      (this.link = ""), (this.mastery = "");
+    },
+
     displayNodeData(node) {
       this.selectedNode = node;
       console.log(this.selectedNode);
@@ -208,5 +288,42 @@ span.close {
   right: 0;
   padding: 10px 20px;
   font-size: 30px;
+}
+#wrapper {
+  width: 300px;
+  height: auto;
+  display: flex;
+  justify-content: center;
+}
+.form-control {
+  margin: 5px;
+}
+.form-control input {
+  margin: 5px;
+  width: 100%;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+.form-control label {
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+#btn {
+  margin: 5px;
+  width: 50%;
+  letter-spacing: 1px;
+  border-radius: 7px;
+  padding: 5px;
+  background-color: rgb(0, 75, 137);
+  border: none;
+  box-shadow: 3px 5px rgb(65, 65, 65);
+  color: white;
+  font-weight: 800;
+  transition: all 0.2s;
+  margin-top: 18px;
+}
+#btn:hover {
+  box-shadow: 1px 2px rgb(65, 65, 65);
+  transform: translate(1px, 2px);
 }
 </style>
